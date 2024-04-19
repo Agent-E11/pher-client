@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/agent-e11/pher-client/menu"
 )
 
 func main() {
@@ -47,6 +49,8 @@ func main() {
 	// RFC 1436 Page 3, Paragraph 1 (?)
 	conn.Write([]byte("\r\n"))
 
+	menuString := ""
+
 	for {
 		// Set a timeout for 5 seconds from now
 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
@@ -56,8 +60,17 @@ func main() {
 			break
 		}
 
+		menuString += string(buf[:n])
+
 		fmt.Printf("Received: %s", buf[:n])
 	}
 
 	fmt.Println("Done")
+
+	fmt.Print("\n\n\n\n\n\n\n")
+
+	m, err := menu.FromString(menuString)
+
+	m.Debugln()
+	fmt.Printf("error: %v\n", err)
 }
