@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/agent-e11/pher-client/menu"
+	"github.com/agent-e11/pher-client/internal/menu"
 )
 
 func main() {
