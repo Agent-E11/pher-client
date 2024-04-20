@@ -31,7 +31,7 @@ var keyBindings = map[string][]string{
 	},
 	"down": {
 		"r" + "j",
-		"j" + keytostr[tcell.KeyDown],
+		"k" + keytostr[tcell.KeyDown],
 	},
 }
 

@@ -1,6 +1,6 @@
 module github.com/agent-e11/pher-client
 
-go 1.22.1
+go 1.21
 
 require github.com/gdamore/tcell/v2 v2.7.4
 
