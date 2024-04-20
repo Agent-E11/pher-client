@@ -6,32 +6,25 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-var keytostr = map[tcell.Key]string{
-	// TODO: I think these should probably be all uppercase
-	tcell.KeyEsc: "<esc>",
-	tcell.KeyCtrlC: "<C-c>",
-	tcell.KeyEnter: "<cr>",
-	tcell.KeyUp: "<up>",
-	tcell.KeyDown: "<down>",
-}
+var keyNames = tcell.KeyNames
 
 var keyBindings = map[string][]string{
 	"quit": {
 		"r" + "q",
 		"r" + "Q",
-		"k" + keytostr[tcell.KeyCtrlC],
-		"k" + keytostr[tcell.KeyEsc],
+		"k" + keyNames[tcell.KeyCtrlC],
+		"k" + keyNames[tcell.KeyEsc],
 	},
 	"select": {
-		"k" + keytostr[tcell.KeyEnter],
+		"k" + keyNames[tcell.KeyEnter],
 	},
 	"up": {
 		"r" + "k",
-		"k" + keytostr[tcell.KeyUp],
+		"k" + keyNames[tcell.KeyUp],
 	},
 	"down": {
 		"r" + "j",
-		"k" + keytostr[tcell.KeyDown],
+		"k" + keyNames[tcell.KeyDown],
 	},
 }
 
@@ -44,5 +37,5 @@ func IsAction(ek *tcell.EventKey, action string) bool {
 		return slices.Contains(keys, "r" + string(ek.Rune()))
 	}
 
-	return slices.Contains(keys, "k" + keytostr[ek.Key()])
+	return slices.Contains(keys, "k" + keyNames[ek.Key()])
 }

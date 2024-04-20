@@ -1,4 +1,4 @@
-# Pher - Client
+# Pher (client)
 
 > !!! WARNING: This project is in the very early stages of developement !!!
 
