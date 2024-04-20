@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
 	"os"
-	"time"
 
-	"github.com/agent-e11/pher-client/internal/menu"
+	"github.com/agent-e11/pher-client/internal/request"
 )
 
 func main() {
@@ -36,40 +34,7 @@ func main() {
 
 	fmt.Println("Address:", address)
 
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", address, port))
-	if err != nil {
-		fmt.Printf("error: %v", err)
-		os.Exit(1)
-	}
-	defer conn.Close()
-
-	buf := make([]byte, 1024)
-
-	// Write an empty line, indicating to the server to "list what you have"
-	// RFC 1436 Page 3, Paragraph 1 (?)
-	conn.Write([]byte("\r\n"))
-
-	menuString := ""
-
-	for {
-		// Set a timeout for 5 seconds from now
-		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		n, err := conn.Read(buf)
-		if err != nil {
-			fmt.Printf("error: %v\n", err)
-			break
-		}
-
-		menuString += string(buf[:n])
-
-		fmt.Printf("Received: %s", buf[:n])
-	}
-
-	fmt.Println("Done")
-
-	fmt.Print("\n\n\n\n\n\n\n")
-
-	m, err := menu.FromString(menuString)
+	m, err := request.RequestMenu("", address, port)
 
 	m.Debugln()
 	fmt.Printf("error: %v\n", err)
