@@ -7,44 +7,48 @@ import (
 	"strings"
 )
 
-type EntityType rune
+var entityTypes = map[rune]string{
+	// Official entity types declared in RFC 1436
+	'0': "TextFile",
+	'1': "Menu",
+	'2': "CSO",
+	// NOTE: This might need to be named something else
+	'3': "Error",
+	'4': "Macintosh",
+	'5': "DOS",
+	'6': "UUEncoded",
+	'7': "IndexServer",
+	'8': "Telnet",
+	'9': "Binary",
+	// NOTE: Duplicate probably shouldn't be stored in its own DirEntity
+	'+': "Duplicate",
+	'g': "GIF",
+	'I': "Image",
+	'T': "TN3270",
 
-// TODO: Rename MenuT type, or the struct Menu
-// NOTE: Duplicate probably shouldn't be stored in its own DirEntity
-// NOTE: This might need to be named something else
+	// Unofficial standard entity types
+	'd': "Doc",
+	'h': "HTML",
+	'i': "Info",
+	'p': "PNG",
+	'r': "RTF",
+	's': "Sound",
+	'P': "PDF",
+	'X': "XML",
+}
 
-// Official entity type declared in RFC 1436
-const (
-	TextFile    EntityType = '0'
-	MenuT       EntityType = '1'
-	CSO         EntityType = '2'
-	Error       EntityType = '3'
-	Macintosh   EntityType = '4'
-	DOS         EntityType = '5'
-	UUEncoded   EntityType = '6'
-	IndexServer EntityType = '7'
-	Telnet      EntityType = '8'
-	Binary      EntityType = '9'
-	Duplicate   EntityType = '+'
-	GIF         EntityType = 'g'
-	Image       EntityType = 'I'
-	TN3270      EntityType = 'T'
-)
+func ValidEntityType(r rune) bool {
+	_, valid := entityTypes[r]
+	return valid
+}
 
-// Unofficial standard entity types
-const (
-	Doc   EntityType = 'd'
-	HTML  EntityType = 'h'
-	Info  EntityType = 'i'
-	PNG   EntityType = 'p'
-	RTF   EntityType = 'r'
-	Sound EntityType = 's'
-	PDF   EntityType = 'P'
-	XML   EntityType = 'X'
-)
+func GetEntityTypeName(r rune) (name string, ok bool) {
+	name, ok = entityTypes[r]
+	return
+}
 
 type DirEntity struct {
-	Type     EntityType
+	Type     rune
 	UserName string
 	Selector string
 	Hostname string
@@ -73,58 +77,11 @@ func FromString(menuString string) (menu Menu, err error) {
 
 		entity := DirEntity{}
 
-		switch line[0] {
-		// FIXME: This is a dumb way of doing it, there must be a better way
-		// Future me can deal with it though
-		case byte(TextFile):
-			entity.Type = TextFile
-		case byte(MenuT):
-			entity.Type = MenuT
-		case byte(CSO):
-			entity.Type = CSO
-		case byte(Error):
-			entity.Type = Error
-		case byte(Macintosh):
-			entity.Type = Macintosh
-		case byte(DOS):
-			entity.Type = DOS
-		case byte(UUEncoded):
-			entity.Type = UUEncoded
-		case byte(IndexServer):
-			entity.Type = IndexServer
-		case byte(Telnet):
-			entity.Type = Telnet
-		case byte(Binary):
-			entity.Type = Binary
-		case byte(Duplicate):
-			entity.Type = Duplicate
-		case byte(GIF):
-			entity.Type = GIF
-		case byte(Image):
-			entity.Type = Image
-		case byte(TN3270):
-			entity.Type = TN3270
+		// If the first character is not a valid type, skip this item
+		_, valid := entityTypes[rune(line[0])]
+		if !valid { continue }
 
-		case byte(Doc):
-			entity.Type = Doc
-		case byte(HTML):
-			entity.Type = HTML
-		case byte(Info):
-			entity.Type = Info
-		case byte(PNG):
-			entity.Type = PNG
-		case byte(RTF):
-			entity.Type = RTF
-		case byte(Sound):
-			entity.Type = Sound
-		case byte(PDF):
-			entity.Type = PDF
-		case byte(XML):
-			entity.Type = XML
-		default:
-			// Ignore malformed type
-			continue
-		}
+		entity.Type = rune(line[0])
 
 		// Remove first character
 		line = line[1:]
