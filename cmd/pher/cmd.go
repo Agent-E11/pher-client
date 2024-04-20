@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/agent-e11/pher-client/internal/display"
+	"github.com/agent-e11/pher-client/internal/keybinding"
 	"github.com/agent-e11/pher-client/internal/request"
 	"github.com/agent-e11/pher-client/internal/state"
 	"github.com/gdamore/tcell/v2"
@@ -49,7 +50,7 @@ func main() {
 	fmt.Println("Address:", address)
 	fmt.Println("Port:", port)
 
-	as := state.AppState{
+	state := state.AppState{
 		LineNum: 0,
 	}
 
@@ -59,7 +60,7 @@ func main() {
 		return
 	}
 
-	as.CurrentMenu = m
+	state.CurrentMenu = m
 
 	defStyle := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
 	s, err := tcell.NewScreen()
@@ -83,43 +84,46 @@ func main() {
 
 	width, height := s.Size()
 
+	// NOTE: This is for debugging
+	msg := ""
+
 	for {
 		display.DrawTextWrap(
 			s,
-			0, 0 - as.LineNum,
+			0, 0 - state.LineNum,
 			width - 1, height - 1,
 			defStyle,
-			as.CurrentMenu.ToString(),
+			state.CurrentMenu.ToString(),
 		)
+		display.DrawTextWrap(
+			s,
+			0, 0,
+			width - 1, height - 1,
+			defStyle,
+			fmt.Sprintf(msg),
+		)
+		msg = ""
 		s.Show()
 
 		ev := s.PollEvent()
 		switch ev := ev.(type) {
 		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyEsc ||
-				ev.Key() == tcell.KeyCtrlC ||
-				ev.Rune() == 'Q' ||
-				ev.Rune() == 'q' {
+			if keybinding.IsAction(ev, "quit") {
 				return
-			} else if ev.Key() == tcell.KeyEnter {
+			} else if keybinding.IsAction(ev, "select") {
 				// HACK:
-				entity := as.CurrentMenu.DirEntities[as.LineNum]
+				entity := state.CurrentMenu.DirEntities[state.LineNum]
 				m, err := request.RequestMenu(entity.Selector, entity.Hostname, entity.Port)
 				if err != nil {
-					display.DrawTextWrap(
-						s,
-						0, 0,
-						width - 1, height - 1,
-						defStyle,
-						fmt.Sprintf("error: %v", err),
-					)
+					msg = fmt.Sprintf("error: %v", err)
 					break
 				}
-				as.CurrentMenu = m
-			} else if ev.Rune() == 'j' {
-				as.LineNum++
-			} else if ev.Rune() == 'k' {
-				as.LineNum--
+				state.CurrentMenu = m
+				state.LineNum = 0
+			} else if keybinding.IsAction(ev, "down") {
+				state.LineNum++
+			} else if keybinding.IsAction(ev, "up") {
+				state.LineNum--
 			}
 		}
 	}
