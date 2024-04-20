@@ -13,8 +13,10 @@ func main() {
 	flag.BoolVar(&showHelpShort, "h", false, "show help")
 	var showHelpLong bool
 	flag.BoolVar(&showHelpLong, "help", false, "show help")
-	var port int
-	flag.IntVar(&port, "p", 70, "port number")
+	var portShort int
+	flag.IntVar(&portShort, "p", 70, "port number")
+	var portLong int
+	flag.IntVar(&portLong, "port", 70, "port number")
 
 	flag.Parse()
 
@@ -24,6 +26,17 @@ func main() {
 		fmt.Println("Help menu has not been implemented yet")
 		os.Exit(0)
 	}
+
+	// Set port to portLong if it is not the default
+	// else, set it to portShort
+	var port int
+	if portLong != 70 {
+		port = portLong
+	} else {
+		port = portShort
+	}
+
+	fmt.Println("Port:", port)
 
 	address := flag.Arg(0)
 
@@ -35,7 +48,6 @@ func main() {
 	fmt.Println("Address:", address)
 
 	m, err := request.RequestMenu("", address, port)
-
 	m.Debugln()
 	fmt.Printf("error: %v\n", err)
 }
