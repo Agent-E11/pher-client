@@ -116,9 +116,9 @@ func main() {
 					break
 				}
 				as.CurrentMenu = m
-			} else if ev.Rune() == 'j' {
+			} else if ev.Rune() == 'j' || ev.Key() == tcell.KeyDown {
 				as.LineNum++
-			} else if ev.Rune() == 'k' {
+			} else if ev.Rune() == 'k' || ev.Key() == tcell.KeyUp {
 				as.LineNum--
 			}
 		}
