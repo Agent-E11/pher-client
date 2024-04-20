@@ -12,6 +12,23 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+// Take short and long flag values, and reconcile conflictions in
+// the following way:
+//
+// If long is not default, use long
+//
+// If long is default, use short (whether it is default or not)
+//
+// This gives precedence to the long flag (Because it is more specific).
+// Ideally, the precedence would go to the flag that was set furthest to the
+// right, but I don't know how I would do that at the moment
+func reconcileShortLongFlags[T comparable](short T, long T, defultVal T) T {
+	if long != defultVal {
+		return long
+	}
+	return short
+}
+
 func main() {
 	var showHelpShort bool
 	flag.BoolVar(&showHelpShort, "h", false, "show help")
@@ -21,7 +38,10 @@ func main() {
 	flag.IntVar(&portShort, "p", 70, "port number")
 	var portLong int
 	flag.IntVar(&portLong, "port", 70, "port number")
-	// TODO: Add a --selector flag
+	var selectorShort string
+	flag.StringVar(&selectorShort, "s", "", "initial selector string")
+	var selectorLong string
+	flag.StringVar(&selectorLong, "selector", "", "initial selector string")
 
 	flag.Parse()
 
@@ -31,14 +51,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Set port to portLong if it is not the default
-	// else, set it to portShort
-	var port int
-	if portLong != 70 {
-		port = portLong
-	} else {
-		port = portShort
-	}
+	port := reconcileShortLongFlags(portShort, portLong, 70)
+	selector := reconcileShortLongFlags(selectorShort, selectorLong, "")
 
 	address := flag.Arg(0)
 
@@ -54,7 +68,7 @@ func main() {
 		LineNum: 0,
 	}
 
-	m, err := request.RequestMenu("", address, port)
+	m, err := request.RequestMenu(selector, address, port)
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 		return
