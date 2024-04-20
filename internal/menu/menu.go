@@ -114,10 +114,25 @@ func FromString(menuString string) (menu Menu, err error) {
 	return
 }
 
+func (m *Menu) ToString() string {
+	str := ""
+	for _, e := range m.DirEntities {
+		str += fmt.Sprintf(
+			"type: %q, user_name: %s, selector: %s, hostname: %s, port: %d\r\n",
+			e.Type,
+			e.UserName,
+			e.Selector,
+			e.Hostname,
+			e.Port,
+		)
+	}
+	return str
+}
+
 func (m *Menu) Debugln() {
 	for _, e := range m.DirEntities {
 		fmt.Printf(
-			"type: %q, user_name: %s, selector: %s, hostname: %s, port: %d\n",
+			"type: %q, user_name: %s, selector: %s, hostname: %s, port: %d\r\n",
 			e.Type,
 			e.UserName,
 			e.Selector,
