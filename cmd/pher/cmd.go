@@ -12,7 +12,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-// Take short and long flag values, and reconcile conflictions in
+// Take short, long, and default flag values, and reconcile conflictions in
 // the following way:
 //
 // If long is not default, use long
@@ -102,13 +102,8 @@ func main() {
 	msg := ""
 
 	for {
-		display.DrawTextWrap(
-			s,
-			0, 0 - state.LineNum,
-			width - 1, height - 1,
-			defStyle,
-			state.CurrentMenu.ToString(),
-		)
+		display.DisplayMenu(s, state.CurrentMenu, state.LineNum, nil)
+		
 		display.DrawTextWrap(
 			s,
 			0, 0,
