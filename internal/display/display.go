@@ -100,7 +100,14 @@ func DrawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text st
 	}
 }
 
-func DisplayMenu(s tcell.Screen, m menu.Menu, selectedIdx int, offset int, indent int, styleMap map[rune]tcell.Style) {
+func DisplayMenu(
+	s tcell.Screen,
+	m menu.Menu,
+	selectedIdx int,
+	offset int,
+	indent int,
+	styleMap map[rune]tcell.Style,
+) (distToTop int, distToBottom int) {
 	// Fallback to default style map
 	if styleMap == nil {
 		styleMap = DefaultStyleMap
@@ -135,6 +142,8 @@ func DisplayMenu(s tcell.Screen, m menu.Menu, selectedIdx int, offset int, inden
 		}
 
 		if dirIdx == selectedIdx {
+			distToTop = row
+			distToBottom = height - row - 1
 			s.SetContent(indent-2, row, '>', nil, style)
 		} else {
 			s.SetContent(indent-2, row, ' ', nil, style)

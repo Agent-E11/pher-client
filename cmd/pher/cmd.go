@@ -89,7 +89,9 @@ func main() {
 		// Recalculate size every frame
 		width, height := s.Size()
 
-		display.DisplayMenu(s, state.CurrentMenu, state.SelectedIdx, state.LineNum, 8, nil)
+		// Number of lines between the cursor and the top/bottom of the screen
+		var distToTop, distToBottom =
+			display.DisplayMenu(s, state.CurrentMenu, state.SelectedIdx, state.LineNum, 8, nil)
 
 		display.DrawTextWrap(
 			s,
@@ -118,10 +120,14 @@ func main() {
 				state.LineNum = -5
 				state.SelectedIdx = 0
 			} else if keybinding.IsAction(ev, "down") && state.LineNum < len(state.CurrentMenu.DirEntities) {
-				state.LineNum++
+				if distToBottom <= 5 {
+					state.LineNum++
+				}
 				state.SelectedIdx++
 			} else if keybinding.IsAction(ev, "up") && state.LineNum > -height {
-				state.LineNum--
+				if distToTop <= 5 {
+					state.LineNum--
+				}
 				state.SelectedIdx--
 			}
 		}
