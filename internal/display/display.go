@@ -100,7 +100,7 @@ func DrawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text st
 	}
 }
 
-func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[rune]tcell.Style) {
+func DisplayMenu(s tcell.Screen, m menu.Menu, selectedIdx int, offset int, indent int, styleMap map[rune]tcell.Style) {
 	// Fallback to default style map
 	if styleMap == nil {
 		styleMap = DefaultStyleMap
@@ -108,7 +108,7 @@ func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[rune]tcel
 
 	width, height := s.Size()
 	row := 0
-	col := 0
+	col := indent
 	dirIdx := offset
 
 	// Loop over the rows in the screen
@@ -134,11 +134,17 @@ func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[rune]tcel
 			style = tcell.StyleDefault.Foreground(tcell.ColorRed)
 		}
 
+		if dirIdx == selectedIdx {
+			s.SetContent(indent-2, row, '>', nil, style)
+		} else {
+			s.SetContent(indent-2, row, ' ', nil, style)
+		}
+
 		// Print the user name, wrapping to the next line if needed
 		for _, r := range entity.UserName {
 			// If the column is off screen, wrap to next line
 			if col >= width {
-				col = 0
+				col = indent
 				row++
 				if row >= height {
 					return
@@ -157,6 +163,6 @@ func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[rune]tcel
 
 		// Go to start of next line
 		row++
-		col = 0
+		col = indent
 	}
 }

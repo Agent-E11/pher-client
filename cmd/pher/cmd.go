@@ -16,9 +16,9 @@ import (
 // Take short, long, and default flag values, and reconcile conflictions in
 // the following way:
 //
-// If long is not default, use long
+// If long is not default, use long.
 //
-// If long is default, use short (whether it is default or not)
+// If long is default, use short (whether it is default or not).
 //
 // This gives precedence to the long flag (Because it is more specific).
 // Ideally, the precedence would go to the flag that was set furthest to the
@@ -31,7 +31,7 @@ func reconcileShortLongFlags[T comparable](short T, long T, defultVal T) T {
 }
 
 func main() {
-	logFile, err := os.Create("./first.log")
+	logFile, err := os.Create("./run.log")
 	if err != nil {
 		log.Fatalf("error creating logFile: %v", err)
 		return
@@ -74,7 +74,8 @@ func main() {
 	fmt.Println("Port:", port)
 
 	state := state.AppState{
-		LineNum: 0,
+		LineNum: -5,
+		SelectedIdx: 0,
 	}
 
 	m, err := request.RequestMenu(selector, address, port)
@@ -105,7 +106,6 @@ func main() {
 	}
 	defer quit()
 
-
 	// NOTE: This is for debugging
 	msg := ""
 
@@ -113,12 +113,12 @@ func main() {
 		// Recalculate size every frame
 		width, height := s.Size()
 
-		display.DisplayMenu(s, state.CurrentMenu, state.LineNum, nil)
-		
+		display.DisplayMenu(s, state.CurrentMenu, state.SelectedIdx, state.LineNum, 8, nil)
+
 		display.DrawTextWrap(
 			s,
-			0, 0,
-			width - 1, height - 1,
+			width-len(msg)-1, 0,
+			width-1, height-1,
 			defStyle,
 			fmt.Sprintf(msg),
 		)
@@ -132,20 +132,23 @@ func main() {
 				return
 			} else if keybinding.IsAction(ev, "select") {
 				// HACK:
-				entity := state.CurrentMenu.DirEntities[state.LineNum]
+				entity := state.CurrentMenu.DirEntities[state.SelectedIdx]
 				m, err := request.RequestMenu(entity.Selector, entity.Hostname, entity.Port)
 				if err != nil {
-					msg = fmt.Sprintf("error: %v", err)
+					msg += fmt.Sprintf(" error: %v", err)
 					break
 				}
 				state.CurrentMenu = m
-				state.LineNum = 0
+				state.LineNum = -5
+				state.SelectedIdx = 0
 			} else if keybinding.IsAction(ev, "down") && state.LineNum < len(state.CurrentMenu.DirEntities) {
 				state.LineNum++
+				state.SelectedIdx++
 			} else if keybinding.IsAction(ev, "up") && state.LineNum > -height {
 				state.LineNum--
+				state.SelectedIdx--
 			}
 		}
-		msg += fmt.Sprintf("LineNum: %v", state.LineNum)
+		msg += fmt.Sprintf(" LineNum: %v", state.LineNum)
 	}
 }
