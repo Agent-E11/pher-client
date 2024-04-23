@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/agent-e11/pher-client/internal/display"
-	"github.com/agent-e11/pher-client/internal/keybinding"
+	kb "github.com/agent-e11/pher-client/internal/keybinding"
 	"github.com/agent-e11/pher-client/internal/request"
 	"github.com/agent-e11/pher-client/internal/state"
 
@@ -93,6 +93,7 @@ func main() {
 		var distToTop, distToBottom =
 			display.DisplayMenu(s, state.CurrentMenu, state.SelectedIdx, state.LineNum, 8, nil)
 
+		// Draw debug message
 		display.DrawTextWrap(
 			s,
 			width-len(msg)-1, 0,
@@ -106,29 +107,57 @@ func main() {
 		ev := s.PollEvent()
 		switch ev := ev.(type) {
 		case *tcell.EventKey:
-			if keybinding.IsAction(ev, "quit") {
+			if kb.IsAction(ev, kb.ActionQuit) {
 				return
-			} else if keybinding.IsAction(ev, "select") {
+			} else if kb.IsAction(ev, kb.ActionSelect) {
 				// HACK:
+
+				// Get the current selected item
 				entity := state.CurrentMenu.DirEntities[state.SelectedIdx]
+				// Request a menu using the information in the item
 				m, err := request.RequestMenu(entity.Selector, entity.Hostname, entity.Port)
 				if err != nil {
 					msg += fmt.Sprintf(" error: %v", err)
 					break
 				}
+				// Set the current menu
 				state.CurrentMenu = m
+				// Reset the screen and cursor position
 				state.LineNum = -5
 				state.SelectedIdx = 0
-			} else if keybinding.IsAction(ev, "down") && state.LineNum < len(state.CurrentMenu.DirEntities) {
+			} else if kb.IsAction(ev, kb.ActionDown) && state.LineNum < len(state.CurrentMenu.DirEntities) {
+				// Move cursor down one item
+				state.SelectedIdx++
+				// Move screen down if needed
 				if distToBottom <= 5 {
 					state.LineNum++
 				}
-				state.SelectedIdx++
-			} else if keybinding.IsAction(ev, "up") && state.LineNum > -height {
+			} else if kb.IsAction(ev, kb.ActionUp) && state.LineNum > -height {
+				// Move cursor up one item
+				state.SelectedIdx--
+				// Move screen up if needed
 				if distToTop <= 5 {
 					state.LineNum--
 				}
-				state.SelectedIdx--
+			} else if kb.IsAction(ev, kb.ActionCenterScreen) {
+				// Center screen on cursor
+				state.LineNum = state.SelectedIdx - height/2
+			} else if kb.IsAction(ev, kb.ActionUpHalfScreen) {
+				// Scroll up by half the screen height
+				state.SelectedIdx -= height/2
+				if state.SelectedIdx < 0 {
+					state.SelectedIdx = 0
+				}
+				// Center screen on cursor
+				state.LineNum = state.SelectedIdx - height/2
+			} else if kb.IsAction(ev, kb.ActionDownHalfScreen) {
+				// Scroll down by half the screen height
+				state.SelectedIdx += height/2
+				if state.SelectedIdx >= len(state.CurrentMenu.DirEntities) {
+					state.SelectedIdx = len(state.CurrentMenu.DirEntities) - 1
+				}
+				// Center screen on cursor
+				state.LineNum = state.SelectedIdx - height/2
 			}
 		}
 		msg += fmt.Sprintf(" LineNum: %v", state.LineNum)
