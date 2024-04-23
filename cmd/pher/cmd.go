@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/agent-e11/pher-client/internal/display"
@@ -30,6 +31,14 @@ func reconcileShortLongFlags[T comparable](short T, long T, defultVal T) T {
 }
 
 func main() {
+	logFile, err := os.Create("./first.log")
+	if err != nil {
+		log.Fatalf("error creating logFile: %v", err)
+		return
+	}
+	log.SetOutput(logFile)
+	defer logFile.Close()
+
 	var showHelpShort bool
 	flag.BoolVar(&showHelpShort, "h", false, "show help")
 	var showHelpLong bool
@@ -96,12 +105,14 @@ func main() {
 	}
 	defer quit()
 
-	width, height := s.Size()
 
 	// NOTE: This is for debugging
 	msg := ""
 
 	for {
+		// Recalculate size every frame
+		width, height := s.Size()
+
 		display.DisplayMenu(s, state.CurrentMenu, state.LineNum, nil)
 		
 		display.DrawTextWrap(
@@ -129,11 +140,12 @@ func main() {
 				}
 				state.CurrentMenu = m
 				state.LineNum = 0
-			} else if keybinding.IsAction(ev, "down") {
+			} else if keybinding.IsAction(ev, "down") && state.LineNum < len(state.CurrentMenu.DirEntities) {
 				state.LineNum++
-			} else if keybinding.IsAction(ev, "up") {
+			} else if keybinding.IsAction(ev, "up") && state.LineNum > -height {
 				state.LineNum--
 			}
 		}
+		msg += fmt.Sprintf("LineNum: %v", state.LineNum)
 	}
 }

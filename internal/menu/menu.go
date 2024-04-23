@@ -55,6 +55,14 @@ type DirEntity struct {
 	Port     int
 }
 
+var BlankDirEntity = DirEntity{
+	Type: '\x00',
+	UserName: "",
+	Selector: "",
+	Hostname: "",
+	Port: 0,
+}
+
 type Menu struct {
 	DirEntities []DirEntity
 }

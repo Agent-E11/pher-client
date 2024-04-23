@@ -40,31 +40,56 @@ func DrawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text st
 }
 
 func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[string]tcell.Style) {
+	// Fallback to default style map
 	if styleMap == nil {
 		styleMap = DefaultStyleMap
 	}
-	width, height := s.Size()
-	// NOTE: This offset/height logic might be off
-	for i := offset; i < height + offset; i++ {
-		var entity menu.DirEntity
-		var entityStr string
-		// If the index is out of bounds, then the string is empty
-		if i < 0 || i >= len(m.DirEntities) {
-			entityStr = ""
-		} else {
-			entity = m.DirEntities[i]
-			entityStr = entity.UserName
-		}
-		strLen := len(entityStr)
 
-		for col := 4; col < width; col++ {
-			var r rune
-			if col - 4 >= strLen {
-				r = ' ' // Print spaces until the end of the screen
-			} else {
-				r = rune(entityStr[col - 4])
-			}
-			s.SetContent(col, i - offset, r, nil, styleMap["menu"])
+	width, height := s.Size()
+	row := 0
+	col := 0
+	dirIdx := offset
+
+	// Loop over the rows in the screen
+	for {
+		if row >= height {
+			return
 		}
+		if dirIdx > height + offset {
+			return
+		}
+
+		// Get the current menu item
+		var entity menu.DirEntity
+		if dirIdx < 0 || dirIdx >= len(m.DirEntities) {
+			entity = menu.BlankDirEntity
+		} else {
+			entity = m.DirEntities[dirIdx]
+		}
+
+		// Print the user name, wrapping to the next line if needed
+		for _, r := range entity.UserName {
+			// If the column is off screen, wrap to next line
+			if col >= width {
+				col = 0
+				row++
+				if row >= height {
+					return
+				}
+
+			}
+			s.SetContent(col, row, r, nil, styleMap["menu"])
+
+			col++
+		}
+		// Print spaces until the end of the current line
+		for ; col < width; col++ {
+			s.SetContent(col, row, ' ', nil, styleMap["menu"])
+		}
+		dirIdx++
+
+		// Go to start of next line
+		row++
+		col = 0
 	}
 }
