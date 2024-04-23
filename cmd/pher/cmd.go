@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -10,25 +9,10 @@ import (
 	"github.com/agent-e11/pher-client/internal/keybinding"
 	"github.com/agent-e11/pher-client/internal/request"
 	"github.com/agent-e11/pher-client/internal/state"
-	"github.com/gdamore/tcell/v2"
-)
 
-// Take short, long, and default flag values, and reconcile conflictions in
-// the following way:
-//
-// If long is not default, use long.
-//
-// If long is default, use short (whether it is default or not).
-//
-// This gives precedence to the long flag (Because it is more specific).
-// Ideally, the precedence would go to the flag that was set furthest to the
-// right, but I don't know how I would do that at the moment
-func reconcileShortLongFlags[T comparable](short T, long T, defultVal T) T {
-	if long != defultVal {
-		return long
-	}
-	return short
-}
+	"github.com/gdamore/tcell/v2"
+	"github.com/spf13/pflag"
+)
 
 func main() {
 	logFile, err := os.Create("./run.log")
@@ -39,31 +23,23 @@ func main() {
 	log.SetOutput(logFile)
 	defer logFile.Close()
 
-	var showHelpShort bool
-	flag.BoolVar(&showHelpShort, "h", false, "show help")
-	var showHelpLong bool
-	flag.BoolVar(&showHelpLong, "help", false, "show help")
-	var portShort int
-	flag.IntVar(&portShort, "p", 70, "port number")
-	var portLong int
-	flag.IntVar(&portLong, "port", 70, "port number")
-	var selectorShort string
-	flag.StringVar(&selectorShort, "s", "", "initial selector string")
-	var selectorLong string
-	flag.StringVar(&selectorLong, "selector", "", "initial selector string")
+	// Create and parse flags
+	var showHelp bool
+	pflag.BoolVarP(&showHelp, "help", "h", false, "show help")
+	var port int
+	pflag.IntVarP(&port, "port", "p", 70, "port number")
+	var selector string
+	pflag.StringVarP(&selector, "selector", "s", "", "initial selector string")
 
-	flag.Parse()
+	pflag.Parse()
 
-	// Show help
-	if showHelpShort || showHelpLong {
-		flag.Usage()
+	// Show help and exit
+	if showHelp {
+		pflag.Usage()
 		os.Exit(0)
 	}
 
-	port := reconcileShortLongFlags(portShort, portLong, 70)
-	selector := reconcileShortLongFlags(selectorShort, selectorLong, "")
-
-	address := flag.Arg(0)
+	address := pflag.Arg(0)
 
 	if address == "" {
 		fmt.Println("please supply an address to connect to")
