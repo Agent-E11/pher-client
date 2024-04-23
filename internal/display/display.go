@@ -5,8 +5,69 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-var DefaultStyleMap = map[string]tcell.Style {
-	"menu": tcell.StyleDefault,
+var StyleUnsupported = tcell.StyleDefault.Foreground(tcell.ColorGray)
+var StyleDocument = tcell.StyleDefault.Foreground(tcell.ColorGreen)
+
+var DefaultStyleMap = map[rune]tcell.Style {
+	// Blank
+	'\x00': tcell.StyleDefault,
+	// Text
+	'0': StyleDocument,
+	// Menu
+	'1': tcell.StyleDefault.
+		Foreground(tcell.ColorBlue),
+	// CSO
+	'2': StyleUnsupported,
+	// Error
+	'3': StyleUnsupported,
+	// Macintosh
+	'4': StyleUnsupported,
+	// DOS
+	'5': StyleUnsupported,
+	// UUEncoded
+	'6': StyleUnsupported,
+	// IndexServer
+	'7': tcell.StyleDefault.
+		Foreground(tcell.ColorYellow),
+	// Telnet
+	'8': StyleUnsupported,
+	// Binary
+	//'9': tcell.StyleDefault.
+		//Foreground(Binary).
+		//Background(Binary),
+	// Duplicate
+	'+': tcell.StyleDefault,
+	// GIF
+	//'g': tcell.StyleDefault.
+		//Foreground(GIF).
+		//Background(GIF),
+	// Image
+	//'I': tcell.StyleDefault.
+		//Foreground(Image).
+		//Background(Image),
+	// TN3270
+	//'T': tcell.StyleDefault.
+		//Foreground(TN3270).
+		//Background(TN3270),
+
+	// Doc
+	'd': StyleDocument,
+	// HTML
+	'h': StyleDocument,
+	// Info
+	'i': tcell.StyleDefault,
+	// PNG
+	'p': StyleUnsupported,
+	// RTF
+	'r': StyleDocument,
+	// Sound
+	//'s': tcell.StyleDefault.
+		//Foreground(Sound).
+		//Background(Sound),
+	// PDF
+	'P': StyleDocument,
+	// XML
+	'X': StyleDocument,
 }
 
 func DrawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
@@ -39,7 +100,7 @@ func DrawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text st
 	}
 }
 
-func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[string]tcell.Style) {
+func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[rune]tcell.Style) {
 	// Fallback to default style map
 	if styleMap == nil {
 		styleMap = DefaultStyleMap
@@ -67,6 +128,12 @@ func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[string]tc
 			entity = m.DirEntities[dirIdx]
 		}
 
+		style, ok := styleMap[entity.Type]
+		if !ok {
+			// TODO: Change this back to white
+			style = tcell.StyleDefault.Foreground(tcell.ColorRed)
+		}
+
 		// Print the user name, wrapping to the next line if needed
 		for _, r := range entity.UserName {
 			// If the column is off screen, wrap to next line
@@ -78,13 +145,13 @@ func DisplayMenu(s tcell.Screen, m menu.Menu, offset int, styleMap map[string]tc
 				}
 
 			}
-			s.SetContent(col, row, r, nil, styleMap["menu"])
+			s.SetContent(col, row, r, nil, style)
 
 			col++
 		}
 		// Print spaces until the end of the current line
 		for ; col < width; col++ {
-			s.SetContent(col, row, ' ', nil, styleMap["menu"])
+			s.SetContent(col, row, ' ', nil, style)
 		}
 		dirIdx++
 
